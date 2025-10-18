@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #1fcb6f 100%);
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 320px;
+        }
+
+        .display {
+            background: #2d3748;
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: right;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .previous {
+            font-size: 14px;
+            color: #a0aec0;
+            min-height: 20px;
+        }
+
+        .current {
+            font-size: 32px;
+            font-weight: bold;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .operator {
+            background: #667eea;
+            color: white;
+        }
+
+        .operator:hover {
+            background: #5a67d8;
+        }
+
+        .clear {
+            background: #fc8181;
+            color: white;
+        }
+
+        .clear:hover {
+            background: #f56565;
+        }
+
+        .equals {
+            background: #48bb78;
+            color: white;
+            grid-column: span 2;
+        }
+
+        .equals:hover {
+            background: #38a169;
+        }
+
+        .zero {
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="previous" id="previous"></div>
+            <div class="current" id="current">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear" onclick="clearAll()">AC</button>
+            <button class="clear" onclick="deleteLast()">DEL</button>
+            <button class="operator" onclick="setOperator('/')">÷</button>
+            
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="setOperator('*')">×</button>
+            
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="setOperator('-')">−</button>
+            
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="setOperator('+')">+</button>
+            
+            <button class="zero" onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('.')">.</button>
+            <button class="equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let current = '0';
+        let previous = '';
+        let operator = null;
+        let shouldResetScreen = false;
+
+        const currentDisplay = document.getElementById('current');
+        const previousDisplay = document.getElementById('previous');
+
+        function updateDisplay() {
+            currentDisplay.textContent = current;
+            if (previous && operator) {
+                previousDisplay.textContent = `${previous} ${getOperatorSymbol(operator)}`;
+            } else {
+                previousDisplay.textContent = '';
+            }
+        }
+
+        function getOperatorSymbol(op) {
+            const symbols = {'+': '+', '-': '−', '*': '×', '/': '÷'};
+            return symbols[op] || op;
+        }
+
+        function appendNumber(num) {
+            if (shouldResetScreen) {
+                current = '';
+                shouldResetScreen = false;
+            }
+            
+            if (num === '.' && current.includes('.')) return;
+            if (current === '0' && num !== '.') {
+                current = num;
+            } else {
+                current += num;
+            }
+            updateDisplay();
+        }
+
+        function setOperator(op) {
+            if (operator !== null && !shouldResetScreen) {
+                calculate();
+            }
+            operator = op;
+            previous = current;
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (operator === null || shouldResetScreen) return;
+            
+            const prev = parseFloat(previous);
+            const curr = parseFloat(current);
+            
+            if (isNaN(prev) || isNaN(curr)) return;
+            
+            let result;
+            switch (operator) {
+                case '+':
+                    result = prev + curr;
+                    break;
+                case '-':
+                    result = prev - curr;
+                    break;
+                case '*':
+                    result = prev * curr;
+                    break;
+                case '/':
+                    result = curr === 0 ? 'Error' : prev / curr;
+                    break;
+                default:
+                    return;
+            }
+            
+            current = result.toString();
+            operator = null;
+            previous = '';
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function clearAll() {
+            current = '0';
+            previous = '';
+            operator = null;
+            shouldResetScreen = false;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (current.length === 1) {
+                current = '0';
+            } else {
+                current = current.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
